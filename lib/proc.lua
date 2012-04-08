@@ -52,13 +52,19 @@ end
 local function check_pid_status (pid)
     local found = false
     local timeout = 10
-    repeat
-        if f_exists('/proc/' .. pid .. '/status') then
-            found = true
+    local file = '/proc/' .. pid .. '/status'
+
+    if f_exists(file) then
+        found = true
+    else
+        while not found or timeout > 0 do
+            if f_exists(file) then
+                found = true
+            end
+            utils.usleep(1000)
+            timeout = timeout - 1
         end
-        utils.usleep(1000)
-        timeout = timeout - 1
-    until found or timeout == 0
+    end
 
     return found
 end
@@ -85,8 +91,12 @@ local function read_lines (file)
 end
 
 local function read_status_file (pid)
-    local lines = read_lines('/proc/' .. pid .. '/status')
-    return lines
+    if check_pid_status(pid) then
+        local lines = read_lines('/proc/' .. pid .. '/status')
+        return lines
+    else
+        return nil
+    end
 end
 
 function build_ptable (...)
@@ -95,8 +105,13 @@ function build_ptable (...)
         users = get_users(capture(command()))
     end
     local ptable = {}
-    for i, pair in ipairs(users) do
+    for _, pair in ipairs(users) do
         local content = read_status_file(pair.pid)
+
+        if content == nil then
+            return nil
+        end
+
         if ptable[pair.user] == nil then
             ptable[pair.user] = {}
         end
