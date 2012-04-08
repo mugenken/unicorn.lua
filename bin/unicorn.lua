@@ -4,7 +4,7 @@ package.path = './lib/?.lua;./lib/?/?.lua;../lib/?.lua;../lib/?/?.lua;' .. packa
 require ('proc')
 require ('dumper')
 
-local ptable = build_ptable()
+local ptable = proc.build_ptable()
 
 print (DataDumper(ptable))
 

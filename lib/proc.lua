@@ -3,27 +3,20 @@ package.path = '../lib/?/?.lua;' .. package.path
 
 require ('utils')
 
---[[
---
--- declarations
---
---]]
+proc = {
+    os = {},
+    io = {},
+}
 
-local command = 'ps fauxn | grep unicorn_rails | grep -v grep'
-local process_table = {}
-local users = {}
+function proc.command ()
+    return 'ps fauxn | grep unicorn_rails | grep -v grep'
+end
 
---[[
---
--- functions
---
---]]
-
-function trim (line)
+function proc.trim (line)
   return (line:gsub("^%s*(.-)%s*$", "%1"))
 end
 
-function os.capture (cmd)
+function proc.os.capture (cmd)
     local lines = {}
     local fh = assert(io.popen(cmd, 'r'))
 
@@ -32,7 +25,7 @@ function os.capture (cmd)
         if line == nil then
             break
         else
-            table.insert(lines, trim(line))
+            table.insert(lines, proc.trim(line))
         end
     end
 
@@ -41,7 +34,7 @@ function os.capture (cmd)
     return lines
 end
 
-function f_exists (f)
+function proc.f_exists (f)
     local handler = io.open(f)
     if handler == nil then
         return false
@@ -50,7 +43,7 @@ function f_exists (f)
     return true
 end
 
-function get_users (lines)
+function proc.get_users (lines)
     local users = {}
     for i, line in ipairs(lines) do
         for user,pid in line:gmatch("(%d+)%s+(%d+).*") do
@@ -61,11 +54,11 @@ function get_users (lines)
     return users
 end
 
-function check_pid_status (pid)
+function proc.check_pid_status (pid)
     local found = false
     local timeout = 10
     repeat
-        if f_exists('/proc/' .. pid .. '/status') then
+        if proc.f_exists('/proc/' .. pid .. '/status') then
             found = true
         end
         utils.usleep(1000)
@@ -75,7 +68,7 @@ function check_pid_status (pid)
     return found
 end
 
-function io.read_lines (file)
+function proc.io.read_lines (file)
     local fh = io.open(file)
     local lines = {}
     if fh == nil then
@@ -87,7 +80,7 @@ function io.read_lines (file)
         if line == nil then
             break
         else
-            table.insert(lines, trim(line))
+            table.insert(lines, proc.trim(line))
         end
     end
 
@@ -96,19 +89,19 @@ function io.read_lines (file)
     return lines
 end
 
-function read_status_file (pid)
-    local lines = io.read_lines('/proc/' .. pid .. '/status')
+function proc.read_status_file (pid)
+    local lines = proc.io.read_lines('/proc/' .. pid .. '/status')
     return lines
 end
 
-function build_ptable (...)
+function proc.build_ptable (...)
     local users = ...
     if users == nil then
-        users = get_users(os.capture(command))
+        users = proc.get_users(proc.os.capture(proc.command()))
     end
     local ptable = {}
     for i, pair in ipairs(users) do
-        local content = read_status_file(pair.pid)
+        local content = proc.read_status_file(pair.pid)
         if ptable[pair.user] == nil then
             ptable[pair.user] = {}
         end
@@ -138,3 +131,4 @@ function build_ptable (...)
     return ptable
 end
 
+return proc
