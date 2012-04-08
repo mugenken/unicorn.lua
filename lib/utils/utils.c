@@ -24,7 +24,7 @@ static int lua_kill (lua_State *L){
 static int lua_getuid (lua_State *L){
     const char * username = luaL_checkstring(L, 1);
     struct passwd *p = getpwnam(username);
-    lua_pushinteger(L, (int) p->pw_uid);
+    lua_pushinteger(L, p == NULL ? -1 : (int) p->pw_uid);
     return 1;
 }
 

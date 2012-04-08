@@ -5,6 +5,6 @@ require ('cli')
 require ('dumper')
 
 local unicorn = cli:new({
-    username = 'mak',
+    username = 'nobody',
 })
 
