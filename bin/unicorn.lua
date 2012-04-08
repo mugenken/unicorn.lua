@@ -11,10 +11,22 @@ local unicorn = cli:new({
     username = 'mak',
 })
 
+unicorn:start()
+
+print (DataDumper(unicorn.ptable))
+
+unicorn:add_worker(4)
+unicorn:refresh()
+
+print (DataDumper(unicorn.ptable))
+
+unicorn:remove_worker(4)
+unicorn:refresh()
+
 print (DataDumper(unicorn.ptable))
 
 unicorn:reload()
-utils.usleep(500)
+utils.usleep(1000)
 unicorn:refresh()
 
 print (DataDumper(unicorn.ptable))

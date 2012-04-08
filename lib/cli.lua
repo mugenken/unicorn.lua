@@ -49,6 +49,18 @@ function cli:new (obj)
 end
 
 function cli:start ()
+    local pid = utils.fork()
+
+    if pid == 0 then
+        print ('in the child')
+        utils.usleep(1000)
+        print ('bye from child')
+
+        os.exit(0)
+    else
+        print ('in the parent. child spawned with pid: ' .. pid)
+        print ('parent moves on')
+    end
 
     return true
 end
@@ -58,11 +70,13 @@ function cli:restart ()
 end
 
 function cli:reload ()
-    if self.ptable[self.uid .. ''] ~= nil then
-        for master_pid, _ in pairs(self.ptable[self.uid .. '']) do
-            if master_pid ~= nil then
-                utils.kill(master_pid, sig['HUP'])
-            end
+    if self:master_exists() == false then
+        return false
+    end
+
+    for master_pid, _ in pairs(self.ptable[self.uid .. '']) do
+        if master_pid ~= nil then
+            utils.kill(master_pid, sig['HUP'])
         end
     end
 
@@ -70,11 +84,13 @@ function cli:reload ()
 end
 
 function cli:stop ()
-    if self.ptable[self.uid .. ''] ~= nil then
-        for master_pid, _ in pairs(self.ptable[self.uid .. '']) do
-            if master_pid ~= nil then
-                utils.kill(master_pid, sig['QUIT'])
-            end
+    if self:master_exists() == false then
+        return false
+    end
+
+    for master_pid, _ in pairs(self.ptable[self.uid .. '']) do
+        if master_pid ~= nil then
+            utils.kill(master_pid, sig['QUIT'])
         end
     end
 
@@ -84,7 +100,7 @@ end
 function cli:add_worker (num)
     num = num or 1
 
-    if num < 0 then
+    if num < 0 or self:master_exists() == false then
         return false
     end
 
@@ -100,7 +116,7 @@ end
 function cli:remove_worker (num)
     num = num or 1
 
-    if num < 0 then
+    if num < 0 or self:master_exists() == false then
         return false
     end
 
@@ -127,4 +143,14 @@ end
 function cli:refresh ()
     self.ptable = proc.build_ptable()
 end
+
+function cli:master_exists ()
+    local retval = true
+    if (self.ptable[self.uid .. ''] == nil) then
+        retval = false
+    end
+
+    return retval
+end
+
 
