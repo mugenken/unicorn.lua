@@ -5,4 +5,5 @@ CCFLAGS = -shared -fPIC -o $(OUTFILE) $(SOURCE)
 
 all:
 	$(CC) $(CCFLAGS)
+	@echo "Built utils library :)"
 

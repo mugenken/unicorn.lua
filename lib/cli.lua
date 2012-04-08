@@ -14,11 +14,12 @@ uid = nil
 ptable = nil
 
 local sig = {
-    USR2 = 12,
+    USR2  = 12,
     WINCH = 28,
-    QUIT = 3,
-    TTIN = 21,
-    TTOU = 22,
+    QUIT  = 3,
+    TTIN  = 21,
+    TTOU  = 22,
+    HUP   = 1,
 }
 
 function cli:new (obj)
@@ -47,19 +48,36 @@ function cli:new (obj)
     return obj
 end
 
-function start ()
+function cli:start ()
+
     return true
 end
 
-function restart ()
+function cli:restart ()
     return true
 end
 
-function reload ()
+function cli:reload ()
+    if self.ptable[self.uid .. ''] ~= nil then
+        for master_pid, _ in pairs(self.ptable[self.uid .. '']) do
+            if master_pid ~= nil then
+                utils.kill(master_pid, sig['HUP'])
+            end
+        end
+    end
+
     return true
 end
 
 function cli:stop ()
+    if self.ptable[self.uid .. ''] ~= nil then
+        for master_pid, _ in pairs(self.ptable[self.uid .. '']) do
+            if master_pid ~= nil then
+                utils.kill(master_pid, sig['QUIT'])
+            end
+        end
+    end
+
     return true
 end
 

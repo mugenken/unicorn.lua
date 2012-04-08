@@ -4,7 +4,6 @@
 #include <lualib.h>
 #include <lauxlib.h>
 #include <signal.h>
-#include <sys/types.h>
 #include <pwd.h>
 
 static int lua_usleep (lua_State *L){
