@@ -1,4 +1,6 @@
-require ('dumper')
+package.cpath = '../lib/?/?.so;' .. package.cpath
+package.path = '../lib/?/?.lua;' .. package.path
+
 require ('utils')
 
 --[[
@@ -135,14 +137,4 @@ function build_ptable (...)
 
     return ptable
 end
-
---[[
---
--- main
---
---]]
-
-process_table = build_ptable()
-
-print (DataDumper(process_table))
 

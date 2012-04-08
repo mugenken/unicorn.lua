@@ -1,6 +1,6 @@
 CC = gcc
-SOURCE = utils.c
-OUTFILE = utils.so
+SOURCE = lib/utils/utils.c
+OUTFILE = lib/utils/utils.so
 CCFLAGS = -shared -fPIC -o $(OUTFILE) $(SOURCE)
 
 all:

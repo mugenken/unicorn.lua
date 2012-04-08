@@ -1,1 +1,10 @@
 The great new unicorn.lua
+
+Manage your unicorns!
+
+Build the utils lib with make:
+
+ make
+
+That was easy :)
+
