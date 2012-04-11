@@ -12,22 +12,19 @@ local unicorn = cli:new({
 })
 
 unicorn:start()
-
-print (DataDumper(unicorn.ptable))
+unicorn:show()
 
 unicorn:add_worker(4)
-unicorn:refresh()
-
-print (DataDumper(unicorn.ptable))
+unicorn:show()
 
 unicorn:remove_worker(4)
-unicorn:refresh()
-
-print (DataDumper(unicorn.ptable))
+unicorn:show()
 
 unicorn:reload()
-utils.usleep(1000)
-unicorn:refresh()
+unicorn:show()
 
-print (DataDumper(unicorn.ptable))
+unicorn:restart()
+unicorn:show()
+
+unicorn:stop()
 

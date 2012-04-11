@@ -48,7 +48,24 @@ function cli:new (obj)
     return obj
 end
 
+function cli:show ()
+    local ptable = self.ptable
+
+    for uid, unicorns in pairs(ptable) do
+        print (uid)
+        for master, workers in pairs(unicorns) do
+            print (' >> ' .. master)
+            for _, pid in ipairs(workers) do
+                print ('   > ' .. pid)
+            end
+        end
+    end
+
+    return true
+end
+
 function cli:start ()
+    --[[
     local pid = utils.fork()
 
     if pid == 0 then
@@ -61,11 +78,34 @@ function cli:start ()
         print ('in the parent. child spawned with pid: ' .. pid)
         print ('parent moves on')
     end
+    ]]--
+    local lines = {}
+    local fh = io.popen('uc.pl start -c /home/mak/programming/rails/test_unicorn/unicorn.rb', 'r')
 
-    return true
+    while true do
+        line = fh:read('*line')
+        if line == nil then
+            break
+        else
+            table.insert(lines, trim(line))
+        end
+    end
+
+    fh:close()
+
+    utils.usleep(1000) -- wait for unicorns to start
+
+    self:refresh()
+
+    return lines
 end
 
 function cli:restart ()
+
+    self:stop()
+    utils.usleep(2000)
+    self:start()
+
     return true
 end
 
@@ -80,6 +120,9 @@ function cli:reload ()
         end
     end
 
+    utils.usleep(1000) -- wait for new workers to spawn
+    self:refresh()
+
     return true
 end
 
@@ -93,6 +136,8 @@ function cli:stop ()
             utils.kill(master_pid, sig['QUIT'])
         end
     end
+
+    self:refresh()
 
     return true
 end
@@ -111,6 +156,10 @@ function cli:add_worker (num)
         end
     end
 
+    utils.usleep(1000) -- wait for new workers to spawn
+    self:refresh()
+
+    return true
 end
 
 function cli:remove_worker (num)
@@ -120,8 +169,8 @@ function cli:remove_worker (num)
         return false
     end
 
-    for pid, children in pairs(self.ptable[self.uid .. '']) do
-        local num_workers = #children
+    for pid, workers in pairs(self.ptable[self.uid .. '']) do
+        local num_workers = #workers
         if num > num_workers then
             num = num_workers - 1
         end
@@ -134,10 +183,12 @@ function cli:remove_worker (num)
             utils.kill(pid, sig['TTOU'])
             utils.usleep(500)
         end
-
-        return true
     end
 
+    utils.usleep(200) -- wait for workers to quit
+    self:refresh()
+
+    return true
 end
 
 function cli:refresh ()
@@ -151,6 +202,10 @@ function cli:master_exists ()
     end
 
     return retval
+end
+
+function trim (line)
+  return (line:gsub("^%s*(.-)%s*$", "%1"))
 end
 
 
